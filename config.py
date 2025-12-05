@@ -33,8 +33,8 @@ class Config:
     SCHEDULER_API_ENABLED = True
     SCHEDULER_TIMEZONE = 'UTC'
     
-    # Update check interval (in hours)
-    UPDATE_CHECK_INTERVAL = int(os.getenv('UPDATE_CHECK_INTERVAL', '6'))
+    # Update check interval (in seconds, minimum 30)
+    UPDATE_CHECK_INTERVAL = int(os.getenv('UPDATE_CHECK_INTERVAL', '3600'))
     
     # Pagination
     ITEMS_PER_PAGE = 20

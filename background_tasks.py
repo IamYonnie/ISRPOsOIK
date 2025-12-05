@@ -121,13 +121,13 @@ def check_project_updates(project):
 def start_scheduler(app):
     """Start background scheduler"""
     try:
-        # Get update check interval from config (in hours)
-        interval = app.config.get('UPDATE_CHECK_INTERVAL', 1)
+        # Get update check interval from config (in seconds)
+        interval = app.config.get('UPDATE_CHECK_INTERVAL', 3600)
         
         scheduler.add_job(
             func=check_all_updates,
             trigger="interval",
-            hours=interval,
+            seconds=interval,
             id='check_updates',
             name='Check for project updates',
             replace_existing=True,
@@ -136,7 +136,8 @@ def start_scheduler(app):
         
         if not scheduler.running:
             scheduler.start()
-            logger.info(f'Background scheduler started - checking every {interval} hour(s)')
+            minutes = interval / 60
+            logger.info(f'Background scheduler started - checking every {minutes:.1f} minute(s)')
         else:
             logger.info('Background scheduler already running')
             
