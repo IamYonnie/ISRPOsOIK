@@ -33,6 +33,11 @@ def create_app(config_name=None):
     from routes import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
     
+    # Initialize background tasks scheduler
+    if config_name != 'testing':
+        from background_tasks import start_scheduler
+        start_scheduler(app)
+    
     # Create database tables
     with app.app_context():
         db.create_all()
