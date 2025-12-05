@@ -1,0 +1,13 @@
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Flask-CORS==4.0.0
+requests==2.31.0
+python-dotenv==1.0.0
+APScheduler==3.10.4
+SQLAlchemy==2.0.21
+Werkzeug==2.3.7
+PyYAML==6.0.1
+pytest==7.4.2
+pytest-cov==4.1.0
+gunicorn==21.2.0
+packaging==23.1

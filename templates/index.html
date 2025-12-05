@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <!-- Hero Section -->
+        <div class="jumbotron bg-light rounded-lg p-5 mb-4">
+            <h1 class="display-4">Система отслеживания версий ПО</h1>
+            <p class="lead">Автоматический мониторинг обновлений проектов с GitHub и PyPI</p>
+            <hr class="my-4">
+            <p>Добавляйте проекты, отслеживайте новые версии и получайте уведомления об обновлениях</p>
+            <a class="btn btn-primary btn-lg" href="/projects" role="button">Перейти к проектам</a>
+            <a class="btn btn-outline-primary btn-lg ms-2" href="https://github.com" role="button">GitHub</a>
+        </div>
+
+        <!-- Statistics -->
+        <div class="row mb-4" id="statsContainer">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Проектов</h5>
+                        <h2 class="text-primary" id="totalProjects">-</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Версий</h5>
+                        <h2 class="text-success" id="totalVersions">-</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Обновлений</h5>
+                        <h2 class="text-warning" id="totalUpdates">-</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Updates -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Последние обновления</h5>
+            </div>
+            <div class="card-body">
+                <div id="updatesContainer" class="list-group">
+                    <p class="text-muted">Загрузка...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load statistics
+    fetch('/api/statistics')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('totalProjects').textContent = data.total_projects;
+            document.getElementById('totalVersions').textContent = data.total_versions;
+            document.getElementById('totalUpdates').textContent = data.total_updates;
+        });
+
+    // Load recent updates
+    fetch('/api/updates/history?page=1')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('updatesContainer');
+            container.innerHTML = '';
+            
+            if (data.updates.length === 0) {
+                container.innerHTML = '<p class="text-muted">Нет обновлений</p>';
+                return;
+            }
+
+            data.updates.slice(0, 5).forEach(update => {
+                const date = new Date(update.detected_at).toLocaleString('ru-RU');
+                const html = `
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Обновление обнаружено</h6>
+                            <small>${date}</small>
+                        </div>
+                        <p class="mb-1">
+                            ${update.old_version} → <strong>${update.new_version}</strong>
+                            <span class="badge bg-info">${update.update_type}</span>
+                        </p>
+                    </a>
+                `;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+        });
+});
+</script>
+{% endblock %}
