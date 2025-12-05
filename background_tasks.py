@@ -28,14 +28,16 @@ def check_all_updates():
     """Check updates for all active projects"""
     try:
         projects = Project.query.filter_by(active=True).all()
+        logger.info(f'Starting update check for {len(projects)} projects')
         
         for project in projects:
             try:
+                logger.info(f'Checking updates for: {project.name}')
                 check_project_updates(project)
             except Exception as e:
                 logger.error(f'Error checking updates for {project.name}: {e}')
         
-        logger.info(f'Checked updates for {len(projects)} projects')
+        logger.info(f'✓ Completed update check for {len(projects)} projects')
     except Exception as e:
         logger.error(f'Error in check_all_updates: {e}')
 
@@ -60,62 +62,66 @@ def check_project_updates(project):
         if latest_version:
             update_info = pypi_service.extract_version_info(project.pypi_package)
     
-    if update_info:
-        new_version = update_info['version_number']
-        
-        # Check if version already exists
-        existing = Version.query.filter_by(
-            project_id=project.id,
-            version_number=new_version
-        ).first()
-        
-        if not existing:
-            version = Version(
+        if update_info:
+            new_version = update_info['version_number']
+            
+            # Check if version already exists
+            existing = Version.query.filter_by(
                 project_id=project.id,
-                version_number=new_version,
-                release_date=update_info.get('release_date'),
-                download_url=update_info.get('download_url'),
-                is_prerelease=update_info.get('is_prerelease', False),
-                is_latest=True
-            )
+                version_number=new_version
+            ).first()
             
-            # Mark old versions as not latest
-            Version.query.filter_by(project_id=project.id, is_latest=True).update({'is_latest': False})
-            
-            db.session.add(version)
-            
-            # Check if it's an update
-            if project.current_version:
-                update_type = version_checker.compare_versions(
-                    project.current_version,
-                    new_version
+            if not existing:
+                logger.info(f'Found new version for {project.name}: {new_version}')
+                version = Version(
+                    project_id=project.id,
+                    version_number=new_version,
+                    release_date=update_info.get('release_date'),
+                    download_url=update_info.get('download_url'),
+                    is_prerelease=update_info.get('is_prerelease', False),
+                    is_latest=True
                 )
                 
-                if update_type:
-                    update = Update(
-                        project_id=project.id,
-                        old_version=project.current_version,
-                        new_version=new_version,
-                        update_type=update_type,
-                        description=update_info.get('description')
-                    )
-                    db.session.add(update)
-                    
-                    # Send notification
-                    notification_service.notify_update(
-                        project.name,
+                # Mark old versions as not latest
+                Version.query.filter_by(project_id=project.id, is_latest=True).update({'is_latest': False})
+                
+                db.session.add(version)
+                
+                # Check if it's an update
+                if project.current_version:
+                    update_type = version_checker.compare_versions(
                         project.current_version,
                         new_version
                     )
                     
-                    logger.info(f'New {update_type} update for {project.name}: {new_version}')
-            
-            project.current_version = new_version
-            project.latest_version = new_version
-            project.latest_release_date = update_info.get('release_date')
-            project.last_checked = datetime.utcnow()
-            
-            db.session.commit()
+                    if update_type:
+                        logger.info(f'Creating {update_type} update record for {project.name}')
+                        update = Update(
+                            project_id=project.id,
+                            old_version=project.current_version,
+                            new_version=new_version,
+                            update_type=update_type,
+                            description=update_info.get('description')
+                        )
+                        db.session.add(update)
+                        
+                        # Send notification
+                        notification_service.notify_update(
+                            project.name,
+                            project.current_version,
+                            new_version
+                        )
+                        
+                        logger.info(f'New {update_type} update for {project.name}: {new_version}')
+                else:
+                    logger.info(f'No current version set for {project.name}, not creating update record')
+                
+                project.current_version = new_version
+                project.latest_version = new_version
+                project.latest_release_date = update_info.get('release_date')
+                project.last_checked = datetime.utcnow()
+                
+                db.session.commit()
 
 
 def start_scheduler(app):

@@ -96,11 +96,13 @@ async function loadNotifications() {
  */
 function showNotificationsModal(notifications) {
     let html = '<div class="list-group">';
+    let projectNames = new Set();
     
     if (notifications.length === 0) {
         html += '<p class="text-muted p-3">Нет новых уведомлений</p>';
     } else {
         notifications.forEach(notif => {
+            projectNames.add(notif.project);
             const date = new Date(notif.detected_at).toLocaleString('ru-RU');
             html += `
                 <div class="list-group-item">
@@ -111,7 +113,7 @@ function showNotificationsModal(notifications) {
                     <p class="mb-1">
                         <code>${notif.old_version}</code> → 
                         <code class="text-success">${notif.new_version}</code>
-                        <span class="badge bg-info ms-2">${notif.update_type}</span>
+                        <span class="badge bg-info ms-2">${notif.update_type || 'update'}</span>
                     </p>
                 </div>
             `;
@@ -149,6 +151,23 @@ function showNotificationsModal(notifications) {
     
     // Show modal
     const modal = new bootstrap.Modal(document.getElementById('notificationsModal'));
+    
+    // Mark notifications as read when modal is closed
+    document.getElementById('notificationsModal').addEventListener('hidden.bs.modal', function() {
+        // Mark each project's notifications as read
+        projectNames.forEach(projectName => {
+            fetch(`/api/notifications/mark-read/${encodeURIComponent(projectName)}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(response => response.json())
+            .catch(error => console.error('Error marking notifications as read:', error));
+        });
+        
+        // Reload notifications to update badge
+        loadNotifications();
+    });
+    
     modal.show();
 }
 
