@@ -3,6 +3,14 @@
 import pytest
 import sys
 import os
+from dotenv import load_dotenv
+
+# Load .env for tests
+load_dotenv()
+
+# Set test environment BEFORE importing app
+os.environ['FLASK_ENV'] = 'testing'
+os.environ['GITHUB_TOKEN'] = 'test-token-for-testing'
 
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + '/..'))

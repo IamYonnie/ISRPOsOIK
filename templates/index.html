@@ -61,16 +61,28 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Load statistics
     fetch('/api/statistics')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load statistics');
+            return response.json();
+        })
         .then(data => {
             document.getElementById('totalProjects').textContent = data.total_projects;
             document.getElementById('totalVersions').textContent = data.total_versions;
             document.getElementById('totalUpdates').textContent = data.total_updates;
+        })
+        .catch(error => {
+            console.error('Error loading statistics:', error);
+            document.getElementById('totalProjects').textContent = '-';
+            document.getElementById('totalVersions').textContent = '-';
+            document.getElementById('totalUpdates').textContent = '-';
         });
 
     // Load recent updates
     fetch('/api/updates/history?page=1')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load updates');
+            return response.json();
+        })
         .then(data => {
             const container = document.getElementById('updatesContainer');
             container.innerHTML = '';
@@ -96,6 +108,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
                 container.insertAdjacentHTML('beforeend', html);
             });
+        })
+        .catch(error => {
+            console.error('Error loading updates:', error);
+            document.getElementById('updatesContainer').innerHTML = '<p class="text-danger">Ошибка загрузки обновлений</p>';
         });
 });
 </script>

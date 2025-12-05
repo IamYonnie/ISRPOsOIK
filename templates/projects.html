@@ -96,7 +96,10 @@ let currentPage = 1;
 
 function loadProjects(page = 1) {
     fetch(`/api/projects?page=${page}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load projects');
+            return response.json();
+        })
         .then(data => {
             const tbody = document.querySelector('#projectsTable tbody');
             tbody.innerHTML = '';
@@ -145,6 +148,10 @@ function loadProjects(page = 1) {
                 document.getElementById('paginationContainer').style.display = 'block';
                 updatePagination(data.pages, page);
             }
+        })
+        .catch(error => {
+            console.error('Error loading projects:', error);
+            document.querySelector('#projectsTable tbody').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Ошибка загрузки проектов</td></tr>';
         });
 }
 
@@ -162,20 +169,33 @@ function updatePagination(pages, currentPage) {
 
 function checkUpdate(projectId) {
     fetch(`/api/projects/${projectId}/check-update`, {method: 'POST'})
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to check update');
+            return response.json();
+        })
         .then(data => {
             alert(data.message);
             loadProjects(currentPage);
         })
-        .catch(error => alert('Ошибка: ' + error));
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при проверке обновления');
+        });
 }
 
 function deleteProject(projectId) {
     if (confirm('Вы уверены?')) {
         fetch(`/api/projects/${projectId}`, {method: 'DELETE'})
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to delete project');
+                return response.json();
+            })
             .then(data => {
                 loadProjects(currentPage);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при удалении проекта');
             });
     }
 }
@@ -198,7 +218,10 @@ document.addEventListener('DOMContentLoaded', function() {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to create project');
+            return response.json();
+        })
         .then(data => {
             if (data.error) {
                 alert('Ошибка: ' + data.error);
@@ -207,6 +230,95 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('addProjectForm').reset();
                 loadProjects();
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при добавлении проекта');
+        });
+    });
+});
+</script>
+{% endblock %}
+
+function updatePagination(pages, currentPage) {
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+    
+    for (let i = 1; i <= pages; i++) {
+        const li = document.createElement('li');
+        li.className = 'page-item' + (i === currentPage ? ' active' : '');
+        li.innerHTML = `<a class="page-link" href="#" onclick="loadProjects(${i}); return false;">${i}</a>`;
+        pagination.appendChild(li);
+    }
+}
+
+function checkUpdate(projectId) {
+    fetch(`/api/projects/${projectId}/check-update`, {method: 'POST'})
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to check update');
+            return response.json();
+        })
+        .then(data => {
+            alert(data.message);
+            loadProjects(currentPage);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при проверке обновления');
+        });
+}
+
+function deleteProject(projectId) {
+    if (confirm('Вы уверены?')) {
+        fetch(`/api/projects/${projectId}`, {method: 'DELETE'})
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to delete project');
+                return response.json();
+            })
+            .then(data => {
+                loadProjects(currentPage);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка при удалении проекта');
+            });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadProjects();
+
+    document.getElementById('addProjectBtn').addEventListener('click', function() {
+        const data = {
+            name: document.getElementById('projectName').value,
+            description: document.getElementById('projectDesc').value,
+            category: document.getElementById('projectCategory').value,
+            github_repo: document.getElementById('projectGitHub').value,
+            pypi_package: document.getElementById('projectPyPI').value,
+            current_version: document.getElementById('projectVersion').value
+        };
+
+        fetch('/api/projects', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to create project');
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                alert('Ошибка: ' + data.error);
+            } else {
+                bootstrap.Modal.getInstance(document.getElementById('addProjectModal')).hide();
+                document.getElementById('addProjectForm').reset();
+                loadProjects();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при добавлении проекта');
         });
     });
 });

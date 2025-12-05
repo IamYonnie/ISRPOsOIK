@@ -83,8 +83,9 @@
 ## Установка и запуск
 
 ### Требования
-- Python 3.9 или выше
+- **Python 3.11 или 3.12** ⚠️ (⚠️ Python 3.13 несовместим - используйте 3.11 или 3.12)
 - pip (Python Package Manager)
+- Git
 
 ### Установка зависимостей
 
@@ -95,6 +96,10 @@ pip install -r requirements.txt
 ### Запуск приложения
 
 ```bash
+# Способ 1: Использование run.py (рекомендуется)
+python run.py
+
+# Способ 2: Напрямую через Flask
 python app.py
 ```
 
@@ -108,6 +113,28 @@ python app.py
 GITHUB_TOKEN=your_github_token_here
 DEBUG=True
 DATABASE_URL=sqlite:///version_tracker.db
+```
+
+## 🚀 Быстрый старт
+
+```bash
+# 1. Клонировать репозиторий
+git clone <url>
+cd Varyusha
+
+# 2. Создать виртуальное окружение
+python -m venv venv
+source venv/bin/activate          # Linux/Mac
+# или
+.\venv\Scripts\Activate.ps1       # Windows
+
+# 3. Установить зависимости
+pip install -r requirements.txt
+
+# 4. Запустить приложение
+python run.py
+
+# 5. Открыть http://localhost:5000
 ```
 
 ## Структура проекта

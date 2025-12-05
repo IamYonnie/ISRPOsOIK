@@ -23,6 +23,67 @@ class TestProject:
             assert project.active is True
     
     def test_project_to_dict(self, app):
+        """Test project to_dict method"""
+        with app.app_context():
+            project = Project(
+                name='Test Project 2',
+                current_version='2.0.0'
+            )
+            db.session.add(project)
+            db.session.commit()
+            
+            data = project.to_dict()
+            assert data['name'] == 'Test Project 2'
+            assert data['current_version'] == '2.0.0'
+            assert 'id' in data
+
+class TestVersion:
+    """Tests for Version model"""
+    
+    def test_create_version(self, app):
+        """Test creating a version"""
+        with app.app_context():
+            project = Project(name='Version Test Project')
+            db.session.add(project)
+            db.session.commit()
+            
+            version = Version(
+                project_id=project.id,
+                version_number='1.0.0',
+                is_latest=True
+            )
+            db.session.add(version)
+            db.session.commit()
+            
+            assert version.id is not None
+            assert version.version_number == '1.0.0'
+
+class TestUpdate:
+    """Tests for Update model"""
+    
+    def test_create_update(self, app):
+        """Test creating an update"""
+        with app.app_context():
+            project = Project(name='Update Test', current_version='1.0.0')
+            db.session.add(project)
+            db.session.commit()
+            
+            update = Update(
+                project_id=project.id,
+                old_version='1.0.0',
+                new_version='1.1.0',
+                update_type='minor'
+            )
+            db.session.add(update)
+            db.session.commit()
+            
+            assert update.id is not None
+            assert update.new_version == '1.1.0'
+            assert project.id is not None
+            assert project.name == 'Test Project'
+            assert project.active is True
+    
+    def test_project_to_dict(self, app):
         """Test converting project to dictionary"""
         with app.app_context():
             project = Project(

@@ -60,8 +60,10 @@ class ProductionConfig(Config):
     TESTING = False
     
     # Ensure these are set in production
-    if not os.getenv('GITHUB_TOKEN'):
-        raise ValueError("GITHUB_TOKEN must be set in production")
+    @classmethod
+    def validate(cls):
+        if not os.getenv('GITHUB_TOKEN'):
+            raise ValueError("GITHUB_TOKEN must be set in production")
 
 # Config dictionary
 config = {

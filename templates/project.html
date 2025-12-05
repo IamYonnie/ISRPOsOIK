@@ -9,7 +9,7 @@
         </a>
 
         <!-- Project Header -->
-        <div id="projectHeader"></div>
+        <div id="projectHeader" data-project-id="{{ project_id }}"></div>
 
         <!-- Tabs -->
         <ul class="nav nav-tabs mt-4" role="tablist">
@@ -87,11 +87,15 @@
 
 {% block extra_js %}
 <script>
-const projectId = {{ project_id }};
+// Get projectId from data attribute
+const projectId = parseInt(document.getElementById('projectHeader').dataset.projectId);
 
 function loadProjectDetails() {
     fetch(`/api/projects/${projectId}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load project');
+            return response.json();
+        })
         .then(project => {
             const headerDiv = document.getElementById('projectHeader');
             headerDiv.innerHTML = `
@@ -132,12 +136,19 @@ function loadProjectDetails() {
                     </div>
                 </div>
             `;
+        })
+        .catch(error => {
+            console.error('Error loading project:', error);
+            document.getElementById('projectHeader').innerHTML = '<div class="alert alert-danger">Ошибка загрузки информации о проекте</div>';
         });
 }
 
 function loadVersions() {
     fetch(`/api/projects/${projectId}/versions`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load versions');
+            return response.json();
+        })
         .then(data => {
             const tbody = document.getElementById('versionsTable');
             tbody.innerHTML = '';
@@ -164,12 +175,19 @@ function loadVersions() {
                 `;
                 tbody.insertAdjacentHTML('beforeend', row);
             });
+        })
+        .catch(error => {
+            console.error('Error loading versions:', error);
+            document.getElementById('versionsTable').innerHTML = '<tr><td colspan="4" class="text-center text-danger">Ошибка загрузки версий</td></tr>';
         });
 }
 
 function loadUpdates() {
     fetch(`/api/projects/${projectId}/updates`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to load updates');
+            return response.json();
+        })
         .then(data => {
             const tbody = document.getElementById('updatesTable');
             tbody.innerHTML = '';
@@ -192,19 +210,29 @@ function loadUpdates() {
                 `;
                 tbody.insertAdjacentHTML('beforeend', row);
             });
+        })
+        .catch(error => {
+            console.error('Error loading updates:', error);
+            document.getElementById('updatesTable').innerHTML = '<tr><td colspan="4" class="text-center text-danger">Ошибка загрузки обновлений</td></tr>';
         });
 }
 
 function checkUpdate() {
     fetch(`/api/projects/${projectId}/check-update`, {method: 'POST'})
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to check update');
+            return response.json();
+        })
         .then(data => {
             alert(data.message);
             loadProjectDetails();
             loadVersions();
             loadUpdates();
         })
-        .catch(error => alert('Ошибка: ' + error));
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ошибка при проверке обновления');
+        });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -214,3 +242,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
+FLASK_ENV=development
+SECRET_KEY=your-secret-key-for-dev
+DEBUG=True
+DATABASE_URL=sqlite:///version_tracker.db
+GITHUB_TOKEN=your_github_token_here
