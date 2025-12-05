@@ -78,18 +78,12 @@ async function loadNotifications() {
             notifCount.style.display = 'none';
         }
         
-        // Show tooltip with notifications
-        if (notifBell && data.notifications && data.notifications.length > 0) {
-            const notifText = data.notifications
-                .map(n => `${n.project}: ${n.old_version} → ${n.new_version}`)
-                .join('\n');
-            notifBell.title = notifText;
-            
-            // Add click handler to show notifications
+        // Setup click handler for bell
+        if (notifBell) {
             notifBell.style.cursor = 'pointer';
             notifBell.onclick = function(e) {
                 e.preventDefault();
-                showNotificationsModal(data.notifications);
+                showNotificationsModal(data.notifications || []);
             };
         }
     } catch (error) {
