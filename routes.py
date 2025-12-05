@@ -224,14 +224,14 @@ def check_update(project_id):
                             update_type=update_type,
                             description=update_info.get('description')
                         )
-                        db.session.add(update)
-                        
-                        if project.notify_on_update:
-                            notification_service.notify_update(
-                                project.name,
-                                project.current_version,
-                                new_version
-                            )
+                db.session.add(update)
+                
+                # Always send notification for new updates
+                notification_service.notify_update(
+                    project.name,
+                    project.current_version,
+                    new_version
+                )
                 
                 project.current_version = new_version
                 project.latest_version = new_version

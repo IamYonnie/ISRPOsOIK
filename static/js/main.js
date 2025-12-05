@@ -79,15 +79,83 @@ async function loadNotifications() {
         }
         
         // Show tooltip with notifications
-        if (notifBell && data.notifications.length > 0) {
+        if (notifBell && data.notifications && data.notifications.length > 0) {
             const notifText = data.notifications
                 .map(n => `${n.project}: ${n.old_version} → ${n.new_version}`)
                 .join('\n');
             notifBell.title = notifText;
+            
+            // Add click handler to show notifications
+            notifBell.style.cursor = 'pointer';
+            notifBell.onclick = function(e) {
+                e.preventDefault();
+                showNotificationsModal(data.notifications);
+            };
         }
     } catch (error) {
         console.error('Error loading notifications:', error);
     }
+}
+
+/**
+ * Show notifications in modal
+ */
+function showNotificationsModal(notifications) {
+    let html = '<div class="list-group">';
+    
+    if (notifications.length === 0) {
+        html += '<p class="text-muted p-3">Нет новых уведомлений</p>';
+    } else {
+        notifications.forEach(notif => {
+            const date = new Date(notif.detected_at).toLocaleString('ru-RU');
+            html += `
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">${notif.project}</h6>
+                        <small class="text-muted">${date}</small>
+                    </div>
+                    <p class="mb-1">
+                        <code>${notif.old_version}</code> → 
+                        <code class="text-success">${notif.new_version}</code>
+                        <span class="badge bg-info ms-2">${notif.update_type}</span>
+                    </p>
+                </div>
+            `;
+        });
+    }
+    
+    html += '</div>';
+    
+    // Create modal
+    const modalHtml = `
+        <div class="modal fade" id="notificationsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Уведомления об обновлениях</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        ${html}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove old modal if exists
+    const oldModal = document.getElementById('notificationsModal');
+    if (oldModal) oldModal.remove();
+    
+    // Add new modal
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('notificationsModal'));
+    modal.show();
 }
 
 /**
@@ -107,11 +175,11 @@ async function checkHealth() {
  * Initialize application
  */
 document.addEventListener('DOMContentLoaded', function() {
-    // Load notifications
+    // Load notifications immediately
     loadNotifications();
     
-    // Refresh notifications every 30 seconds
-    setInterval(loadNotifications, 30000);
+    // Refresh notifications every 10 seconds
+    setInterval(loadNotifications, 10000);
     
     // Check health
     checkHealth();
@@ -126,5 +194,6 @@ window.VersionTracker = {
     formatDateTime,
     showNotification,
     loadNotifications,
+    showNotificationsModal,
     checkHealth
 };
