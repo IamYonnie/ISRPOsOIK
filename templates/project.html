@@ -235,6 +235,38 @@ function checkUpdate() {
         });
 }
 
+function editProject() {
+    const projectName = prompt('Введите новое название:', '');
+    if (projectName === null) return;
+    
+    const projectDesc = prompt('Введите новое описание:', '');
+    const projectCategory = prompt('Введите новую категорию:', '');
+    
+    const data = {
+        name: projectName,
+        description: projectDesc,
+        category: projectCategory
+    };
+    
+    fetch(`/api/projects/${projectId}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Failed to update project');
+        return response.json();
+    })
+    .then(data => {
+        alert('Проект успешно обновлен');
+        loadProjectDetails();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Ошибка при обновлении проекта');
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     loadProjectDetails();
     loadVersions();
