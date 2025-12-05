@@ -20,10 +20,6 @@ class NotificationService:
                 logger.warning(f'Project not found: {project_name}')
                 return {}
             
-            # Mark all previous updates as notified
-            Update.query.filter_by(project_id=project.id, notified=False).update({'notified': True, 'notified_at': datetime.utcnow()})
-            db.session.commit()
-            
             logger.info(f'Notification created: {project_name} updated from {old_version} to {new_version}')
             return {
                 'project': project_name,
@@ -40,7 +36,7 @@ class NotificationService:
         from models import Update, Project
         
         try:
-            # Get updates that haven't been notified yet
+            # Get updates that haven't been marked as read yet
             updates = Update.query.filter_by(notified=False).all()
             
             notifications = []
@@ -67,7 +63,11 @@ class NotificationService:
         try:
             project = Project.query.filter_by(name=project_name).first()
             if project:
-                Update.query.filter_by(project_id=project.id, notified=False).update({'notified': True, 'notified_at': datetime.utcnow()})
+                # Mark all updates for this project as notified
+                Update.query.filter_by(project_id=project.id, notified=False).update({
+                    'notified': True, 
+                    'notified_at': datetime.utcnow()
+                })
                 db.session.commit()
                 logger.info(f'Marked notifications as read for {project_name}')
         except Exception as e:
@@ -78,7 +78,10 @@ class NotificationService:
         from models import db, Update
         
         try:
-            Update.query.update({'notified': True, 'notified_at': datetime.utcnow()})
+            Update.query.filter_by(notified=False).update({
+                'notified': True, 
+                'notified_at': datetime.utcnow()
+            })
             db.session.commit()
             logger.info('Cleared all notifications')
         except Exception as e:

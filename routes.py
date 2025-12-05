@@ -301,15 +301,7 @@ def get_unread_notifications():
     """Get unread notifications"""
     notifications = notification_service.get_unread_notifications()
     return jsonify({
-        'notifications': [
-            {
-                'project': n['project'],
-                'old_version': n['old_version'],
-                'new_version': n['new_version'],
-                'timestamp': n['timestamp'].isoformat()
-            }
-            for n in notifications
-        ],
+        'notifications': notifications,
         'count': len(notifications)
     })
 
