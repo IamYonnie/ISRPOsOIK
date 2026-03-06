@@ -2,10 +2,9 @@
 import os
 from jinja2 import Environment, FileSystemLoader, TemplateSyntaxError
 
-# Set up Jinja2 environment
 env = Environment(loader=FileSystemLoader('templates'))
 
-# Check all templates
+# Проверка всех шаблонов
 templates = ['base.html', 'index.html', 'projects.html', 'project.html']
 
 for template_name in templates:

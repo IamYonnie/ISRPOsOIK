@@ -4,18 +4,18 @@ import os
 from datetime import timedelta
 from dotenv import load_dotenv
 
-# Load environment variables
+# Загрузка переменных окружения
 load_dotenv()
 
 class Config:
-    """Base configuration"""
+    """Базовая конфигурация"""
     
     # Flask
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     DEBUG = os.getenv('DEBUG', 'False') == 'True'
     TESTING = False
     
-    # Database
+    # База данных
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'DATABASE_URL', 
         'sqlite:///version_tracker.db'
@@ -29,14 +29,14 @@ class Config:
     # PyPI API
     PYPI_API_BASE_URL = 'https://pypi.org/pypi'
     
-    # Scheduler
+    # Планировщик
     SCHEDULER_API_ENABLED = True
     SCHEDULER_TIMEZONE = 'UTC'
     
-    # Update check interval (in seconds, minimum 30)
+    # Интервал проверки обновлений (в секундах, минимум 30)
     UPDATE_CHECK_INTERVAL = int(os.getenv('UPDATE_CHECK_INTERVAL', '3600'))
     
-    # Pagination
+    # Пагинация
     ITEMS_PER_PAGE = 20
     
     # API
@@ -44,28 +44,28 @@ class Config:
     JSONIFY_PRETTYPRINT_REGULAR = True
 
 class DevelopmentConfig(Config):
-    """Development configuration"""
+    """Конфигурация для разработки"""
     DEBUG = True
     TESTING = False
 
 class TestingConfig(Config):
-    """Testing configuration"""
+    """Конфигурация для тестирования"""
     DEBUG = True
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
 
 class ProductionConfig(Config):
-    """Production configuration"""
+    """Конфигурация для продакшена"""
     DEBUG = False
     TESTING = False
     
-    # Ensure these are set in production
+    # Убедитесь, что эти переменные установлены в продакшене
     @classmethod
     def validate(cls):
         if not os.getenv('GITHUB_TOKEN'):
             raise ValueError("GITHUB_TOKEN must be set in production")
 
-# Config dictionary
+# Словарь конфигураций
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,

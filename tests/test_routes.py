@@ -5,10 +5,10 @@ import json
 from models import db, Project, Version
 
 class TestProjectRoutes:
-    """Tests for project API routes"""
+    """Тесты для API маршрутов проектов"""
     
     def test_get_projects_empty(self, client):
-        """Test getting empty project list"""
+        """Тест получения пустого списка проектов"""
         response = client.get('/api/projects')
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -16,7 +16,7 @@ class TestProjectRoutes:
         assert data['total'] == 0
     
     def test_create_project(self, client, app):
-        """Test creating a project"""
+        """Тест создания проекта"""
         response = client.post('/api/projects', json={
             'name': 'Test Project',
             'description': 'Test Description',
@@ -28,14 +28,14 @@ class TestProjectRoutes:
         assert data['name'] == 'Test Project'
     
     def test_create_project_missing_name(self, client):
-        """Test creating project without name"""
+        """Тест создания проекта без названия"""
         response = client.post('/api/projects', json={
             'description': 'Test'
         })
         assert response.status_code == 400
     
     def test_get_project(self, client, app):
-        """Test getting a specific project"""
+        """Тест получения конкретного проекта"""
         with app.app_context():
             project = Project(name='Test', current_version='1.0.0')
             db.session.add(project)
@@ -48,7 +48,7 @@ class TestProjectRoutes:
         assert data['name'] == 'Test'
     
     def test_update_project(self, client, app):
-        """Test updating a project"""
+        """Тест обновления проекта"""
         with app.app_context():
             project = Project(name='Test', current_version='1.0.0')
             db.session.add(project)
@@ -61,7 +61,7 @@ class TestProjectRoutes:
         assert response.status_code == 200
     
     def test_delete_project(self, client, app):
-        """Test deleting a project"""
+        """Тест удаления проекта"""
         with app.app_context():
             project = Project(name='Test')
             db.session.add(project)
@@ -72,10 +72,10 @@ class TestProjectRoutes:
         assert response.status_code == 200
 
 class TestVersionRoutes:
-    """Tests for version API routes"""
+    """Тесты для API маршрутов версий"""
     
     def test_get_versions(self, client, app):
-        """Test getting versions"""
+        """Тест получения версий"""
         with app.app_context():
             project = Project(name='Test')
             db.session.add(project)
@@ -92,10 +92,10 @@ class TestVersionRoutes:
         assert len(data['versions']) == 1
 
 class TestStatisticsRoutes:
-    """Tests for statistics routes"""
+    """Тесты для маршрутов статистики"""
     
     def test_get_statistics(self, client):
-        """Test getting statistics"""
+        """Тест получения статистики"""
         response = client.get('/api/statistics')
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -103,17 +103,17 @@ class TestStatisticsRoutes:
         assert 'total_versions' in data
     
     def test_create_project_duplicate(self, client, app):
-        """Test creating duplicate project"""
+        """Тест создания дублирующегося проекта"""
         with app.app_context():
-            # Create first project
+            # Создать первый проект
             client.post('/api/projects', json={'name': 'Test Project'})
             
-            # Try to create duplicate
+            # Попытаться создать дубликат
             response = client.post('/api/projects', json={'name': 'Test Project'})
             assert response.status_code == 400
     
     def test_get_project(self, client, app):
-        """Test getting a specific project"""
+        """Тест получения конкретного проекта"""
         with app.app_context():
             project = Project(name='Test Project')
             db.session.add(project)
@@ -126,7 +126,7 @@ class TestStatisticsRoutes:
             assert data['name'] == 'Test Project'
     
     def test_delete_project(self, client, app):
-        """Test deleting a project"""
+        """Тест удаления проекта"""
         with app.app_context():
             project = Project(name='Test Project')
             db.session.add(project)
@@ -136,15 +136,15 @@ class TestStatisticsRoutes:
             response = client.delete(f'/api/projects/{project_id}')
             assert response.status_code == 200
             
-            # Verify deletion
+            # Проверить удаление
             deleted_project = Project.query.get(project_id)
             assert deleted_project is None
 
 class TestHealthRoute:
-    """Tests for health check route"""
+    """Тесты для маршрута проверки здоровья"""
     
     def test_health_check(self, client):
-        """Test health check endpoint"""
+        """Тест endpoint проверки здоровья"""
         response = client.get('/health')
         assert response.status_code == 200
         data = json.loads(response.data)

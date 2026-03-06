@@ -1,5 +1,3 @@
-# MIT License
-
 from flask import Blueprint, request, jsonify, current_app
 from models import db, Project, Version, Update
 from services.github_service import GitHubService
@@ -13,18 +11,13 @@ logger = logging.getLogger(__name__)
 
 api_bp = Blueprint('api', __name__)
 
-# Initialize services
-github_service = GitHubService(token=None)  # Token will be set from config
+github_service = GitHubService(token=None)
 pypi_service = PyPIService()
 version_checker = VersionChecker()
 
-# ============================================================================
-# PROJECT ROUTES
-# ============================================================================
-
 @api_bp.route('/projects', methods=['GET'])
 def get_projects():
-    """Get all projects"""
+    # Вывод всех проектов
     page = request.args.get('page', 1, type=int)
     per_page = current_app.config.get('ITEMS_PER_PAGE', 20)
     
@@ -39,18 +32,18 @@ def get_projects():
 
 @api_bp.route('/projects', methods=['POST'])
 def create_project():
-    """Create a new project"""
+    # Создание нового проекта
     data = request.get_json() or {}
-    
-    # Validate required fields
+
+    # Валидация
     if not data.get('name'):
         return jsonify({'error': 'Name is required'}), 400
-    
-    # Check for duplicates
+
     if Project.query.filter_by(name=data['name']).first():
         return jsonify({'error': 'Project with this name already exists'}), 400
     
     try:
+        # Создание проекта
         project = Project(
             name=data['name'],
             description=data.get('description'),
@@ -73,13 +66,13 @@ def create_project():
 
 @api_bp.route('/projects/<int:project_id>', methods=['GET'])
 def get_project(project_id):
-    """Get a specific project"""
+    # Получить конкретный проект
     project = Project.query.get_or_404(project_id)
     return jsonify(project.to_dict())
 
 @api_bp.route('/projects/<int:project_id>', methods=['PUT'])
 def update_project(project_id):
-    """Update a project"""
+    # Обновить проект
     project = Project.query.get_or_404(project_id)
     data = request.get_json() or {}
     
@@ -111,7 +104,7 @@ def update_project(project_id):
 
 @api_bp.route('/projects/<int:project_id>', methods=['DELETE'])
 def delete_project(project_id):
-    """Delete a project"""
+    # Удалить проект
     project = Project.query.get_or_404(project_id)
     
     try:
@@ -124,13 +117,9 @@ def delete_project(project_id):
         logger.error(f'Error deleting project: {e}')
         return jsonify({'error': str(e)}), 400
 
-# ============================================================================
-# VERSION ROUTES
-# ============================================================================
-
 @api_bp.route('/projects/<int:project_id>/versions', methods=['GET'])
 def get_versions(project_id):
-    """Get versions for a project"""
+    # Узнать версию
     project = Project.query.get_or_404(project_id)
     
     page = request.args.get('page', 1, type=int)
@@ -149,7 +138,7 @@ def get_versions(project_id):
 
 @api_bp.route('/projects/<int:project_id>/latest-version', methods=['GET'])
 def get_latest_version(project_id):
-    """Get latest version for a project"""
+    # Получить информацию о последнем релизе
     project = Project.query.get_or_404(project_id)
     
     latest = Version.query.filter_by(project_id=project_id, is_latest=True).first()
@@ -159,19 +148,13 @@ def get_latest_version(project_id):
     else:
         return jsonify({'error': 'No versions found'}), 404
 
-# ============================================================================
-# UPDATE ROUTES
-# ============================================================================
-
 @api_bp.route('/projects/<int:project_id>/check-update', methods=['POST'])
 def check_update(project_id):
-    """Check for updates for a project"""
+    # Проверить обновления
     project = Project.query.get_or_404(project_id)
     
     try:
         update_info = None
-        
-        # Check GitHub
         if project.github_repo:
             owner, repo = github_service.parse_repo_url(project.github_repo)
             if owner and repo:
@@ -179,7 +162,7 @@ def check_update(project_id):
                 if release:
                     update_info = github_service.extract_version_info(release)
         
-        # Check PyPI
+        # Проверить PyPI
         if project.pypi_package and not update_info:
             latest_version = pypi_service.get_latest_version(project.pypi_package)
             if latest_version:
@@ -187,8 +170,6 @@ def check_update(project_id):
         
         if update_info:
             new_version = update_info['version_number']
-            
-            # Check if version already exists
             existing = Version.query.filter_by(
                 project_id=project_id,
                 version_number=new_version
@@ -203,13 +184,9 @@ def check_update(project_id):
                     is_prerelease=update_info.get('is_prerelease', False),
                     is_latest=True
                 )
-                
-                # Mark old versions as not latest
                 Version.query.filter_by(project_id=project_id, is_latest=True).update({'is_latest': False})
                 
                 db.session.add(version)
-                
-                # Check if it's an update
                 if project.current_version:
                     update_type = version_checker.compare_versions(
                         project.current_version,
@@ -225,8 +202,6 @@ def check_update(project_id):
                             description=update_info.get('description')
                         )
                 db.session.add(update)
-                
-                # Always send notification for new updates
                 notification_service.notify_update(
                     project.name,
                     project.current_version,
@@ -258,7 +233,7 @@ def check_update(project_id):
 
 @api_bp.route('/updates/history', methods=['GET'])
 def get_updates_history():
-    """Get update history"""
+    # Получить историю обновлений
     page = request.args.get('page', 1, type=int)
     per_page = current_app.config.get('ITEMS_PER_PAGE', 20)
     
@@ -275,7 +250,7 @@ def get_updates_history():
 
 @api_bp.route('/projects/<int:project_id>/updates', methods=['GET'])
 def get_project_updates(project_id):
-    """Get updates for a specific project"""
+    # Получить обновление конкретного проекта
     project = Project.query.get_or_404(project_id)
     
     page = request.args.get('page', 1, type=int)
@@ -292,13 +267,9 @@ def get_project_updates(project_id):
         'current_page': page
     })
 
-# ============================================================================
-# NOTIFICATION ROUTES
-# ============================================================================
-
 @api_bp.route('/notifications/unread', methods=['GET'])
 def get_unread_notifications():
-    """Get unread notifications"""
+    # Получить непрочитанные уведомления
     notifications = notification_service.get_unread_notifications()
     return jsonify({
         'notifications': notifications,
@@ -307,17 +278,13 @@ def get_unread_notifications():
 
 @api_bp.route('/notifications/mark-read/<project_name>', methods=['POST'])
 def mark_notification_read(project_name):
-    """Mark notifications as read for a project"""
+    # Сделать уведомления прочитанными
     notification_service.mark_as_read(project_name)
     return jsonify({'message': 'Notifications marked as read'})
 
-# ============================================================================
-# STATISTICS ROUTES
-# ============================================================================
-
 @api_bp.route('/statistics', methods=['GET'])
 def get_statistics():
-    """Get system statistics"""
+    # Получить статистику системы
     total_projects = Project.query.count()
     active_projects = Project.query.filter_by(active=True).count()
     total_versions = Version.query.count()

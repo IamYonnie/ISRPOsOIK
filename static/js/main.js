@@ -1,14 +1,14 @@
 // MIT License
 
 /**
- * Main JavaScript file for Version Tracker application
+ * Основной JavaScript файл для приложения Version Tracker
  */
 
-// API Base URL
+// Базовый URL API
 const API_BASE = '/api';
 
 /**
- * Fetch with error handling
+ * Fetch с обработкой ошибок
  */
 async function apiFetch(url, options = {}) {
     const response = await fetch(url, options);
@@ -19,7 +19,7 @@ async function apiFetch(url, options = {}) {
 }
 
 /**
- * Format date to locale string
+ * Форматировать дату в локальную строку
  */
 function formatDate(dateString) {
     const date = new Date(dateString);
@@ -31,7 +31,7 @@ function formatDate(dateString) {
 }
 
 /**
- * Format datetime to locale string
+ * Форматировать дату и время в локальную строку
  */
 function formatDateTime(dateString) {
     const date = new Date(dateString);
@@ -45,7 +45,7 @@ function formatDateTime(dateString) {
 }
 
 /**
- * Show notification toast
+ * Показать уведомление (toast)
  */
 function showNotification(message, type = 'info') {
     const alertHtml = `
@@ -63,7 +63,7 @@ function showNotification(message, type = 'info') {
 }
 
 /**
- * Load and display notifications
+ * Загрузить и отобразить уведомления
  */
 async function loadNotifications() {
     try {
@@ -78,7 +78,7 @@ async function loadNotifications() {
             notifCount.style.display = 'none';
         }
         
-        // Setup click handler for bell
+        // Установить обработчик клика для значка
         if (notifBell) {
             notifBell.style.cursor = 'pointer';
             notifBell.onclick = function(e) {
@@ -92,7 +92,7 @@ async function loadNotifications() {
 }
 
 /**
- * Show notifications in modal
+ * Показать уведомления в модальном окне
  */
 function showNotificationsModal(notifications) {
     let html = '<div class="list-group">';
@@ -122,7 +122,7 @@ function showNotificationsModal(notifications) {
     
     html += '</div>';
     
-    // Create modal
+    // Создать модальное окно
     const modalHtml = `
         <div class="modal fade" id="notificationsModal" tabindex="-1">
             <div class="modal-dialog modal-lg">
@@ -142,19 +142,19 @@ function showNotificationsModal(notifications) {
         </div>
     `;
     
-    // Remove old modal if exists
+    // Удалить старое модальное окно, если оно существует
     const oldModal = document.getElementById('notificationsModal');
     if (oldModal) oldModal.remove();
     
-    // Add new modal
+    // Добавить новое модальное окно
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     
-    // Show modal
+    // Показать модальное окно
     const modal = new bootstrap.Modal(document.getElementById('notificationsModal'));
     
-    // Mark notifications as read when modal is closed
+    // Отметить уведомления как прочитанные при закрытии модального окна
     document.getElementById('notificationsModal').addEventListener('hidden.bs.modal', function() {
-        // Mark each project's notifications as read
+        // Отметить уведомления каждого проекта как прочитанные
         projectNames.forEach(projectName => {
             fetch(`/api/notifications/mark-read/${encodeURIComponent(projectName)}`, {
                 method: 'POST',
@@ -164,7 +164,7 @@ function showNotificationsModal(notifications) {
             .catch(error => console.error('Error marking notifications as read:', error));
         });
         
-        // Reload notifications to update badge
+        // Перезагрузить уведомления, чтобы обновить значок
         loadNotifications();
     });
     
@@ -172,7 +172,7 @@ function showNotificationsModal(notifications) {
 }
 
 /**
- * Check API health
+ * Проверить здоровье API
  */
 async function checkHealth() {
     try {
@@ -185,21 +185,21 @@ async function checkHealth() {
 }
 
 /**
- * Initialize application
+ * Инициализировать приложение
  */
 document.addEventListener('DOMContentLoaded', function() {
-    // Load notifications immediately
+    // Загрузить уведомления сразу же
     loadNotifications();
     
-    // Refresh notifications every 10 seconds
+    // Обновлять уведомления каждые 10 секунд
     setInterval(loadNotifications, 10000);
     
-    // Check health
+    // Проверить здоровье API
     checkHealth();
 });
 
 /**
- * Export functions for global use
+ * Экспортировать функции для глобального использования
  */
 window.VersionTracker = {
     apiFetch,

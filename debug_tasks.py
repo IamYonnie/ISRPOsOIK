@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Debug script to test background tasks
+Debug script to test background task
 """
 
 import os
@@ -19,7 +19,7 @@ with app.app_context():
     print("Testing Background Tasks")
     print("=" * 60)
     
-    # Check if there are any projects
+    # Проверка наличия проектов
     projects = Project.query.filter_by(active=True).all()
     print(f"\nActive projects: {len(projects)}")
     
@@ -31,7 +31,7 @@ with app.app_context():
         print(f"    Latest Version: {project.latest_version}")
         print(f"    Last Checked: {project.last_checked}")
     
-    # Run update check
+    # Запуск проверки обновлений
     print("\n" + "=" * 60)
     print("Running update check...")
     print("=" * 60)
@@ -44,7 +44,7 @@ with app.app_context():
         import traceback
         traceback.print_exc()
     
-    # Check notifications
+    # Проверка уведомлений
     from services.notifier import NotificationService
     notif_service = NotificationService()
     

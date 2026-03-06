@@ -1,12 +1,10 @@
-# MIT License
-
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
 db = SQLAlchemy()
 
 class Project(db.Model):
-    """Model for tracked software projects"""
+    # Модель для отслеживаемых проектов ПО
     __tablename__ = 'projects'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -14,23 +12,23 @@ class Project(db.Model):
     description = db.Column(db.Text, nullable=True)
     github_repo = db.Column(db.String(255), nullable=True, unique=True)
     pypi_package = db.Column(db.String(255), nullable=True, unique=True)
-    category = db.Column(db.String(100), nullable=True)  # e.g., 'framework', 'library', 'tool'
-    
-    # Tracking info
+    category = db.Column(db.String(100), nullable=True)  # например, 'framework', 'library', 'tool'
+
+    # Информация о версиях
     current_version = db.Column(db.String(50), nullable=True)
     latest_version = db.Column(db.String(50), nullable=True)
     latest_release_date = db.Column(db.DateTime, nullable=True)
-    
-    # Configuration
+
+    # Конфигурация
     active = db.Column(db.Boolean, default=True, index=True)
     notify_on_update = db.Column(db.Boolean, default=True)
     
-    # Metadata
+    # Метаданные
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_checked = db.Column(db.DateTime, nullable=True)
-    
-    # Relationships
+
+    # Связи
     versions = db.relationship('Version', backref='project', lazy=True, cascade='all, delete-orphan')
     updates = db.relationship('Update', backref='project', lazy=True, cascade='all, delete-orphan')
     
@@ -38,7 +36,7 @@ class Project(db.Model):
         return f'<Project {self.name}>'
     
     def to_dict(self):
-        """Convert to dictionary"""
+        # Преобразовать объект в словарь
         return {
             'id': self.id,
             'name': self.name,
@@ -60,7 +58,7 @@ class Project(db.Model):
 
 
 class Version(db.Model):
-    """Model for software versions"""
+    # Модель для версий ПО
     __tablename__ = 'versions'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -70,8 +68,8 @@ class Version(db.Model):
     release_date = db.Column(db.DateTime, nullable=True)
     download_url = db.Column(db.String(500), nullable=True)
     changelog_url = db.Column(db.String(500), nullable=True)
-    
-    # Metadata
+
+    # Метаданные
     is_prerelease = db.Column(db.Boolean, default=False)
     is_latest = db.Column(db.Boolean, default=False, index=True)
     
@@ -81,7 +79,7 @@ class Version(db.Model):
         return f'<Version {self.version_number}>'
     
     def to_dict(self):
-        """Convert to dictionary"""
+        # Преобразовать объект в словарь
         return {
             'id': self.id,
             'project_id': self.project_id,
@@ -96,7 +94,7 @@ class Version(db.Model):
 
 
 class Update(db.Model):
-    """Model for tracking version updates"""
+    # Модель для отслеживания обновлений
     __tablename__ = 'updates'
     
     id = db.Column(db.Integer, primary_key=True)
@@ -104,16 +102,16 @@ class Update(db.Model):
     
     old_version = db.Column(db.String(50), nullable=True)
     new_version = db.Column(db.String(50), nullable=False)
-    
-    # Update info
+
+    # Информация об обновлении
     description = db.Column(db.Text, nullable=True)
-    update_type = db.Column(db.String(20), nullable=True)  # 'major', 'minor', 'patch'
-    
-    # Metadata
+    update_type = db.Column(db.String(20), nullable=True)  # 'major' (основная), 'minor' (дополнительная), 'patch' (исправление)
+
+    # Метаданные
     detected_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     release_date = db.Column(db.DateTime, nullable=True)
-    
-    # Notification status
+
+    # Статус уведомления
     notified = db.Column(db.Boolean, default=False)
     notified_at = db.Column(db.DateTime, nullable=True)
     
@@ -121,7 +119,7 @@ class Update(db.Model):
         return f'<Update {self.old_version} -> {self.new_version}>'
     
     def to_dict(self):
-        """Convert to dictionary"""
+        # Преобразовать объект в словарь
         return {
             'id': self.id,
             'project_id': self.project_id,

@@ -8,23 +8,23 @@ from packaging import version as pkg_version
 logger = logging.getLogger(__name__)
 
 class VersionChecker:
-    """Service for version comparison and update detection"""
+    """Сервис для сравнения версий и определения обновлений"""
     
     @staticmethod
     def compare_versions(old_version: str, new_version: str) -> Optional[str]:
         """
-        Compare two versions and return update type
+        Сравнить две версии и вернуть тип обновления
         
-        Returns: 'major', 'minor', 'patch', or None if versions cannot be compared
+        Возвращает: 'major' (основная), 'minor' (дополнительная), 'patch' (исправление), или None если версии нельзя сравнить
         """
         try:
             old = pkg_version.parse(old_version)
             new = pkg_version.parse(new_version)
             
             if new <= old:
-                return None  # Not an update
+                return None  # Это не обновление
             
-            # For PEP440 versions
+            # Для версий PEP440
             if hasattr(old, 'major') and hasattr(new, 'major'):
                 if new.major > old.major:
                     return 'major'
@@ -33,26 +33,26 @@ class VersionChecker:
                 else:
                     return 'patch'
             
-            # Fallback for simple comparison
+            # Fallback для простого сравнения
             return 'patch'
         except Exception as e:
-            logger.warning(f'Error comparing versions {old_version} and {new_version}: {e}')
+            logger.warning(f'Ошибка при сравнении версий {old_version} и {new_version}: {e}')
             return None
     
     @staticmethod
     def is_newer(version1: str, version2: str) -> bool:
-        """Check if version1 is newer than version2"""
+        """Проверить, является ли version1 новее version2"""
         try:
             return pkg_version.parse(version1) > pkg_version.parse(version2)
         except Exception as e:
-            logger.warning(f'Error comparing versions: {e}')
+            logger.warning(f'Ошибка при сравнении версий: {e}')
             return False
     
     @staticmethod
     def normalize_version(version_str: str) -> str:
-        """Normalize version string"""
+        """Нормализировать строку версии"""
         try:
-            # Remove 'v' prefix if present
+            # Удалить префикс 'v' если присутствует
             if version_str.startswith('v'):
                 version_str = version_str[1:]
             return str(pkg_version.parse(version_str))

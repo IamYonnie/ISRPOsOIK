@@ -5,10 +5,10 @@ from models import db, Project, Version, Update
 from datetime import datetime
 
 class TestProject:
-    """Tests for Project model"""
+    """Тесты для модели Project"""
     
     def test_create_project(self, app):
-        """Test creating a project"""
+        """Тест создания проекта"""
         with app.app_context():
             project = Project(
                 name='Test Project',
@@ -23,7 +23,7 @@ class TestProject:
             assert project.active is True
     
     def test_project_to_dict(self, app):
-        """Test project to_dict method"""
+        """Тест метода to_dict проекта"""
         with app.app_context():
             project = Project(
                 name='Test Project 2',
@@ -38,10 +38,10 @@ class TestProject:
             assert 'id' in data
 
 class TestVersion:
-    """Tests for Version model"""
+    """Тесты для модели Version"""
     
     def test_create_version(self, app):
-        """Test creating a version"""
+        """Тест создания версии"""
         with app.app_context():
             project = Project(name='Version Test Project')
             db.session.add(project)
@@ -59,10 +59,10 @@ class TestVersion:
             assert version.version_number == '1.0.0'
 
 class TestUpdate:
-    """Tests for Update model"""
+    """Тесты для модели Update"""
     
     def test_create_update(self, app):
-        """Test creating an update"""
+        """Тест создания обновления"""
         with app.app_context():
             project = Project(name='Update Test', current_version='1.0.0')
             db.session.add(project)
@@ -84,7 +84,7 @@ class TestUpdate:
             assert project.active is True
     
     def test_project_to_dict(self, app):
-        """Test converting project to dictionary"""
+        """Тест преобразования проекта в словарь"""
         with app.app_context():
             project = Project(
                 name='Test Project',

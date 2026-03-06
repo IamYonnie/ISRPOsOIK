@@ -8,7 +8,7 @@ from config import config
 from models import db
 from datetime import datetime
 
-# Configure logging
+# Настройка логирования
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -16,33 +16,33 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def create_app(config_name=None):
-    """Application factory"""
+    """Фабрика приложения"""
     if config_name is None:
         config_name = os.getenv('FLASK_ENV', 'development')
     
     app = Flask(__name__)
     
-    # Load configuration
+    # Загрузка конфигурации
     app.config.from_object(config.get(config_name, config['development']))
     
-    # Initialize extensions
+    # Инициализация расширений
     db.init_app(app)
     CORS(app)
     
-    # Register blueprint
+    # Регистрация blueprintа
     from routes import api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
     
-    # Initialize background tasks scheduler
+    # Инициализация планировщика фоновых задач
     if config_name != 'testing':
         from background_tasks import start_scheduler
         start_scheduler(app)
     
-    # Create database tables
+    # Создание таблиц базы данных
     with app.app_context():
         db.create_all()
     
-    # Register error handlers
+    # Регистрация обработчиков ошибок
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({'error': 'Not found'}), 404
@@ -52,7 +52,7 @@ def create_app(config_name=None):
         logger.error(f'Internal server error: {error}')
         return jsonify({'error': 'Internal server error'}), 500
     
-    # Health check endpoint
+    # Endpoint проверки здоровья
     @app.route('/health')
     def health():
         return jsonify({
@@ -60,7 +60,7 @@ def create_app(config_name=None):
             'timestamp': datetime.utcnow().isoformat()
         })
     
-    # Frontend routes
+    # Frontend-маршруты
     @app.route('/')
     def index():
         return render_template('index.html')

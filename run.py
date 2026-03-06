@@ -1,10 +1,9 @@
 # MIT License
-# Simple runner script for development
+# Приложение для запуска программы
 
 import os
 import sys
 
-# Set environment variables before importing Flask
 os.environ.setdefault('FLASK_ENV', 'development')
 os.environ.setdefault('GITHUB_TOKEN', 'dev-token')
 os.environ.setdefault('DEBUG', 'True')
