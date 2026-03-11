@@ -27,7 +27,15 @@ def create_app(config_name=None):
     
     # Инициализация расширений
     db.init_app(app)
-    CORS(app)
+    # Настройка CORS с ограничением источников
+    cors_config = {
+        "origins": app.config.get('CORS_ORIGINS', ['http://localhost:5000']),
+        "methods": app.config.get('CORS_METHODS', ['GET', 'POST', 'PUT', 'DELETE']),
+        "allow_headers": app.config.get('CORS_ALLOW_HEADERS', ['Content-Type', 'Authorization']),
+        "max_age": app.config.get('CORS_MAX_AGE', 3600),
+        "supports_credentials": True
+    }
+    CORS(app, resources={r"/api/*": cors_config})
     
     # Регистрация blueprintа
     from routes import api_bp
@@ -78,4 +86,4 @@ def create_app(config_name=None):
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=app.config['DEBUG'], host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=5000)
