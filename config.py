@@ -42,33 +42,40 @@ class Config:
     # API
     JSON_SORT_KEYS = False
     JSONIFY_PRETTYPRINT_REGULAR = True
+    
+    # CORS - Безопасная настройка
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:5000').split(',')
+    CORS_ALLOW_HEADERS = ['Content-Type', 'Authorization']
+    CORS_METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    CORS_MAX_AGE = 3600  # Кэш preflight запросов на 1 час
 
 class DevelopmentConfig(Config):
     """Конфигурация для разработки"""
     DEBUG = True
     TESTING = False
+    # Для разработки разрешаем локальные источники
+    CORS_ORIGINS = ['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:5000']
 
 class TestingConfig(Config):
     """Конфигурация для тестирования"""
     DEBUG = True
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    # Для тестирования разрешаем все
+    CORS_ORIGINS = ['*']
 
 class ProductionConfig(Config):
     """Конфигурация для продакшена"""
     DEBUG = False
     TESTING = False
+    # В продакшене строго указываем разрешенные домены
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'https://yourdomain.com').split(',')
     
     # Убедитесь, что эти переменные установлены в продакшене
     @classmethod
     def validate(cls):
         if not os.getenv('GITHUB_TOKEN'):
             raise ValueError("GITHUB_TOKEN must be set in production")
+        if not os.getenv('CORS_ORIGINS'):
+            raise ValueError("CORS_ORIGINS must be set in production")
 
-# Словарь конфигураций
-config = {
-    'development': DevelopmentConfig,
-    'testing': TestingConfig,
-    'production': ProductionConfig,
-    'default': DevelopmentConfig
-}
